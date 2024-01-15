@@ -1,0 +1,8 @@
+typer
+textual
+boto3>=1.28.57
+pandas
+s3fs
+numpy
+
+docker
