@@ -114,6 +114,38 @@ What it does:
 
 
 @app.command()
+def list_workflows(
+    aws_region: Annotated[
+        Optional[str],
+        typer.Option(help="AWS Region", default=AWS_REGION),
+    ] = AWS_REGION,
+    aws_profile: Annotated[
+        Optional[str], typer.Option(help="AWS Profile", default="default")
+    ] = "default",
+):
+    """List existing omics workflows"""
+    omics_workflow = workflows.OmicsWorkflow(aws_region=aws_region)
+    omics_workflow.list_workflows()
+    return
+
+
+@app.command()
+def list_runs(
+    aws_region: Annotated[
+        Optional[str],
+        typer.Option(help="AWS Region", default=AWS_REGION),
+    ] = AWS_REGION,
+    aws_profile: Annotated[
+        Optional[str], typer.Option(help="AWS Profile", default="default")
+    ] = "default",
+):
+    """List existing omics runs"""
+    omics_run = runs.OmicsRun(aws_region=aws_region)
+    omics_run.list_runs()
+    return
+
+
+@app.command()
 def create_workflow(
     nf_workflow: Annotated[
         str,

@@ -13,6 +13,8 @@ from time import sleep
 from urllib.parse import urlparse
 from zipfile import ZipFile, ZIP_DEFLATED
 from typing import Dict, List, Any
+from rich.console import Console
+from rich.table import Table
 
 import boto3
 import botocore.exceptions
@@ -144,3 +146,24 @@ class OmicsWorkflow(object):
             name=name,
         )
         return workflow
+
+    def list_workflows(self):
+        response = self.omics_client.list_workflows()
+        if 'items' not in response:
+            return []
+        table = Table(title="Workflows")
+        table.add_column("ID")
+        table.add_column("Name")
+        table.add_column("CreationTime")
+        for workflow in response['items']:
+            table.add_row(workflow['id'], workflow['name'], workflow['creationTime'].strftime("%Y/%m/%d, %H:%M:%S"))
+        console = Console()
+        console.print(table)
+        return response['items']
+
+    def submit_workflow(self, workflow_id: str, parameters: Dict[str, Any]):
+        response = self.omics_client.submit_workflow(
+            id=workflow_id,
+            parameterOverrides=parameters,
+        )
+        return response

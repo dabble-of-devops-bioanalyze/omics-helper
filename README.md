@@ -4,6 +4,28 @@ Helper utils for omics
 
 * Free software: MIT license
 
+## Usage
+
+### Prepare the workflow
+
+In order to use a nextflow workflow with AWS Omics, you need to prepare it first.
+
+* All images must be stored in *your* ecr repository. You can use the `create-ecr-repos` command to create the repos and
+  push the images.
+* All parameters must be defined in the `nextflow_schema.json` file. You can use the `create-workflow` command to create
+  the workflow.
+* The workflow must be zipped and uploaded to AWS Omics. You can use the `create-workflow` command to create the
+  workflow.
+
+```bash
+omicsx create-ecr-repos --nf-workflow <your-nextflow-workflow-directory> \
+  --aws-region <your-aws-region>
+
+omicsx create-workflow --nf-workflow <your-nextflow-workflow-directory> \
+  --name <your-workflow-name> \
+  --aws-region <your-aws-region>
+```
+
 # CLI
 
 **Usage**:
@@ -97,6 +119,32 @@ $ omicsx create-workflow [OPTIONS] NF_WORKFLOW NAME
 **Options**:
 
 * `--description TEXT`
+* `--aws-region TEXT`: [default: us-east-1]
+* `--aws-profile TEXT`: [default: default]
+* `--help`: Show this message and exit.
+
+## `list-workflows`
+
+List existing omics workflows
+
+**Options**:
+
+* `--aws-region TEXT`: [default: us-east-1]
+* `--aws-profile TEXT`: [default: default]
+* `--help`: Show this message and exit.
+
+## `list-runs`
+
+List existing omics runs
+
+**Usage**:
+
+```console
+$ list-runs [OPTIONS]
+```
+
+**Options**:
+
 * `--aws-region TEXT`: [default: us-east-1]
 * `--aws-profile TEXT`: [default: default]
 * `--help`: Show this message and exit.

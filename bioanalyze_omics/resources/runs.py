@@ -16,6 +16,8 @@ import boto3
 import requests
 from copy import deepcopy
 import pandas as pd
+from rich.console import Console
+from rich.table import Table
 
 MINIMUM_STORAGE_CAPACITY_GIB = 1200
 
@@ -217,6 +219,33 @@ class OmicsRun(object):
     def gen_run_df(self, run: Any) -> pd.DataFrame:
         run_df = pd.DataFrame.from_records([run])
         return run_df
+
+    def list_runs(self):
+        response = self.omics_client.list_runs()
+        if 'items' not in response:
+            return []
+        table = Table(title="Runs")
+        table.add_column("RunId")
+        table.add_column("WorkflowId")
+        table.add_column("Name")
+        table.add_column("Status")
+        table.add_column("CreationTime")
+        table.add_column("StartTime")
+        table.add_column("StopTime")
+        for run in response['items']:
+            table.add_row(
+                run['id'],
+                run['workflowId'],
+                run['name'],
+                run['status'],
+                run['creationTime'].strftime("%Y/%m/%d, %H:%M:%S"),
+                run['startTime'].strftime("%Y/%m/%d, %H:%M:%S"),
+                run['stopTime'].strftime("%Y/%m/%d, %H:%M:%S"),
+
+            )
+        console = Console()
+        console.print(table)
+        return response['items']
 
 
 def calculate_cost(

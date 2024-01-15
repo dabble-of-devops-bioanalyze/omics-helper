@@ -12,6 +12,8 @@ import docker
 
 from bioanalyze_omics.nf import NextflowWorkflow
 from bioanalyze_omics.resources.account import get_aws_account_id
+from rich.console import Console
+from rich.table import Table
 
 import logging
 from rich.logging import RichHandler
