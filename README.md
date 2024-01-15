@@ -9,7 +9,7 @@ Helper utils for omics
 **Usage**:
 
 ```console
-$ omicxs --help
+$ omicsx --help
 ```
 
 **Options**:
