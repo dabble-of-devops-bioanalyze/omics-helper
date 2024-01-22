@@ -269,7 +269,6 @@ class OmicsRun(object):
 
     def start_run(
         self,
-        run_input: Dict,
         output_uri: str,
         workflow_id: str,
         run_name: str,
@@ -283,6 +282,8 @@ class OmicsRun(object):
         aws_account_id = account.get_aws_account_id()
         if not role_arn:
             role_arn = f'arn:aws:iam::{aws_account_id}:role/OmicsFullAccessServiceRole'
+        if not tags:
+            tags = {}
 
         dt_fmt = "%Y%m%dT%H%M%S"
         ts = datetime.now().strftime(dt_fmt)
@@ -293,21 +294,20 @@ class OmicsRun(object):
                 roleArn=role_arn,
                 parameters=parameters,
                 outputUri=output_uri,
-                runGroupId=run_group_id,
+                # runGroupId=run_group_id,
                 tags=tags,
                 storageCapacity=storage_capacity,
                 logLevel="ALL",
             )
 
-            print(f"Workflow {workflow_id}, run group {run_group_id}, run {run['id']}")
             log.info(
                 f"""
-    Submitted
-    Run        : {run['id']}
-    WorkflowId : {workflow_id}
-    RunGroupId : {run_group_id}
-    Tags       : {tags}
-    Parameters : {parameters}
+Submitted
+Run        : {run['id']}
+WorkflowId : {workflow_id}
+RunGroupId : {run_group_id}
+Tags       : {tags}
+Parameters : {parameters}
             """
             )
 
