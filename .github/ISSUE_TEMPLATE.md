@@ -1,4 +1,4 @@
-* BioAnalyze Omics version:
+* aws_pcluster_bootstrap_helpers version:
 * Python version:
 * Operating System:
 

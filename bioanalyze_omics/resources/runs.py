@@ -10,7 +10,7 @@ import numpy as np
 from argparse import ArgumentParser
 import os
 import json
-from typing import Dict, List, Any
+from typing import Dict, List, Any, TypedDict
 
 import boto3
 import requests
@@ -20,6 +20,27 @@ from rich.console import Console
 from rich.table import Table
 
 MINIMUM_STORAGE_CAPACITY_GIB = 1200
+from rich.console import Console
+from rich.table import Table
+
+import logging
+from rich.logging import RichHandler
+
+logging.basicConfig(
+    level="INFO",
+    format="[ %(name)s ] %(message)s",
+    datefmt=None,
+    handlers=[RichHandler(rich_tracebacks=True)],
+)
+
+log = logging.getLogger("omics-run")
+from bioanalyze_omics.resources import account
+
+
+class OmicsRunInput(TypedDict):
+    output_uri: str
+    tags: Dict[str, Any]
+    parameters: Dict[str, Any]
 
 
 def change_case(str: str) -> str:
@@ -222,7 +243,7 @@ class OmicsRun(object):
 
     def list_runs(self):
         response = self.omics_client.list_runs()
-        if 'items' not in response:
+        if "items" not in response:
             return []
         table = Table(title="Runs")
         table.add_column("RunId")
@@ -232,20 +253,68 @@ class OmicsRun(object):
         table.add_column("CreationTime")
         table.add_column("StartTime")
         table.add_column("StopTime")
-        for run in response['items']:
+        for run in response["items"]:
             table.add_row(
-                run['id'],
-                run['workflowId'],
-                run['name'],
-                run['status'],
-                run['creationTime'].strftime("%Y/%m/%d, %H:%M:%S"),
-                run['startTime'].strftime("%Y/%m/%d, %H:%M:%S"),
-                run['stopTime'].strftime("%Y/%m/%d, %H:%M:%S"),
-
+                run["id"],
+                run["workflowId"],
+                run["name"],
+                run["status"],
+                run["creationTime"].strftime("%Y/%m/%d, %H:%M:%S"),
+                run["startTime"].strftime("%Y/%m/%d, %H:%M:%S"),
+                run["stopTime"].strftime("%Y/%m/%d, %H:%M:%S"),
             )
         console = Console()
         console.print(table)
-        return response['items']
+        return response["items"]
+
+    def start_run(
+        self,
+        run_input: Dict,
+        output_uri: str,
+        workflow_id: str,
+        run_name: str,
+        storage_capacity: int = 9600,
+        parameters: Optional[Dict[str, Any]] = None,
+        tags: Optional[Dict[str, Any]] = None,
+        role_arn: Optional[str] = None,
+        run_group_id: Optional[str] = None,
+    ):
+        omics = self.omics_client
+        aws_account_id = account.get_aws_account_id()
+        if not role_arn:
+            role_arn = f'arn:aws:iam::{aws_account_id}:role/OmicsFullAccessServiceRole'
+
+        dt_fmt = "%Y%m%dT%H%M%S"
+        ts = datetime.now().strftime(dt_fmt)
+        try:
+            run = omics.start_run(
+                workflowId=workflow_id,
+                name=run_name,
+                roleArn=role_arn,
+                parameters=parameters,
+                outputUri=output_uri,
+                runGroupId=run_group_id,
+                tags=tags,
+                storageCapacity=storage_capacity,
+                logLevel="ALL",
+            )
+
+            print(f"Workflow {workflow_id}, run group {run_group_id}, run {run['id']}")
+            log.info(
+                f"""
+    Submitted
+    Run        : {run['id']}
+    WorkflowId : {workflow_id}
+    RunGroupId : {run_group_id}
+    Tags       : {tags}
+    Parameters : {parameters}
+            """
+            )
+
+            return run
+        except Exception as e:
+            log.error(e)
+            raise
 
 
 def calculate_cost(

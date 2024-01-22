@@ -55,7 +55,7 @@ class OmicsWorkflow(object):
                     "optional": True,
                     "description": param_name,
                 }
-        omics_parameters_definitions['omics'] = {
+        omics_parameters_definitions["omics"] = {
             "optional": True,
             "description": "Include omics config.",
             "default": True,
@@ -149,17 +149,21 @@ class OmicsWorkflow(object):
 
     def list_workflows(self):
         response = self.omics_client.list_workflows()
-        if 'items' not in response:
+        if "items" not in response:
             return []
         table = Table(title="Workflows")
         table.add_column("ID")
         table.add_column("Name")
         table.add_column("CreationTime")
-        for workflow in response['items']:
-            table.add_row(workflow['id'], workflow['name'], workflow['creationTime'].strftime("%Y/%m/%d, %H:%M:%S"))
+        for workflow in response["items"]:
+            table.add_row(
+                workflow["id"],
+                workflow["name"],
+                workflow["creationTime"].strftime("%Y/%m/%d, %H:%M:%S"),
+            )
         console = Console()
         console.print(table)
-        return response['items']
+        return response["items"]
 
     def submit_workflow(self, workflow_id: str, parameters: Dict[str, Any]):
         response = self.omics_client.submit_workflow(

@@ -9,7 +9,8 @@ from typing import Optional
 import typer
 from typing_extensions import Annotated
 import os
-from bioanalyze_omics.resources import runs, ecr, workflows
+from bioanalyze_omics.resources import runs, ecr, workflows, iam
+from bioanalyze_omics.resources.account import get_aws_account_id
 
 app = typer.Typer()
 AWS_REGION = os.environ.get("AWS_DEFAULT_REGION", "us-east-1")
@@ -27,13 +28,13 @@ def run_cost(
     ] = "default",
 ):
     """
-Calculate the cost of a run. If the run is still running, it will calculate the current cost. If the run is complete, it will calculate the final cost.
+    Calculate the cost of a run. If the run is still running, it will calculate the current cost. If the run is complete, it will calculate the final cost.
 
-* Cost per task
+    * Cost per task
 
-* Storage cost
+    * Storage cost
 
-* Total cost
+    * Total cost
     """
     runs.calculate_cost(
         run_id=run_id,
@@ -52,8 +53,7 @@ def create_ecr_repos(
         ),
     ],
     output_config_file: Annotated[
-        Optional[str],
-        typer.Option(help="Output config file", default="omics.config")
+        Optional[str], typer.Option(help="Output config file", default="omics.config")
     ],
     nf_workflow: Annotated[
         str,
@@ -75,33 +75,33 @@ def create_ecr_repos(
     ] = True,
 ):
     """
-Inspect a nextflow workflow and create a manifest file for container images.
+    Inspect a nextflow workflow and create a manifest file for container images.
 
-Grabbed from here - https://github.com/aws-samples/amazon-omics-tutorials/tree/main/utils
+    Grabbed from here - https://github.com/aws-samples/amazon-omics-tutorials/tree/main/utils
 
-Script to inspect a Nextflow workflow definition and generate resources
-to help migrate it to run on AWS HealthOmics.
+    Script to inspect a Nextflow workflow definition and generate resources
+    to help migrate it to run on AWS HealthOmics.
 
-Specifically designed to handle NF-Core based workflows, but in theory could
-handle any Nextflow workflow definition.
+    Specifically designed to handle NF-Core based workflows, but in theory could
+    handle any Nextflow workflow definition.
 
-What it does:
+    What it does:
 
-- look through all *.nf files
+    - look through all *.nf files
 
-- find `container` directives
+    - find `container` directives
 
-- extract container uris to:
+    - extract container uris to:
 
-- build an image uri manifest
+    - build an image uri manifest
 
-- create a custom nextflow.config file
+    - create a custom nextflow.config file
 
-- create ECR repos
+    - create ECR repos
 
-- attach omics policies
+    - attach omics policies
 
-- push existing repos
+    - push existing repos
     """
     ecr.inspect_nf(
         aws_region=aws_region,
@@ -169,16 +169,26 @@ def create_workflow(
 ):
     """Create an omics workflow from a nextflow workflow directory.
 
-In order to create the parameters they must be defined in the nextflow_schema.json
+    In order to create the parameters they must be defined in the nextflow_schema.json
 
-- Parse the nextflow_schema.json and create the parameters
+    - Parse the nextflow_schema.json and create the parameters
 
-- Create a zip archive of the workflow directory
+    - Create a zip archive of the workflow directory
 
-- Upload the zip to AWS Omics workflows
+    - Upload the zip to AWS Omics workflows
     """
     omics_workflow = workflows.OmicsWorkflow(aws_region=aws_region)
-    omics_workflow.create_workflow(nextflow_dir=nf_workflow, name=name, description=description)
+    omics_workflow.create_workflow(
+        nextflow_dir=nf_workflow, name=name, description=description
+    )
+    return
+
+
+@app.command
+def setup_iam():
+    """Setup IAM policies and roles for omics"""
+    omics_iam = iam.OmicsIam()
+    omics_iam.create_omics_role()
     return
 
 

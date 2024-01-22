@@ -205,14 +205,14 @@ if (params.omics) {
 """
     try:
         # Open the file in read mode
-        with open(file_path, 'r') as file:
+        with open(file_path, "r") as file:
             # Read the content of the file
             content = file.read()
 
         # Check if "HELLO WORLD" is present in the content
         if omics_content not in content:
             # Open the file in append mode and append "HELLO WORLD"
-            with open(file_path, 'a') as file:
+            with open(file_path, "a") as file:
                 file.write(omics_content)
             print("Text appended successfully.")
         else:
