@@ -46,16 +46,6 @@ class OmicsWorkflow(object):
         :return:
         """
         omics_parameters_definitions = {}
-        # omics_parameters_defaults = {}
-        additional_parameters = """"""
-        additional_parameters = [p.strip() for p in additional_parameters.split(",")]
-
-        # for param_name in additional_parameters:
-        #     if len(param_name):
-        #         omics_parameters_definitions[param_name] = {
-        #             "optional": True,
-        #             "description": param_name,
-        #         }
         omics_parameters_definitions["omics"] = {
             "optional": True,
             "description": "Include omics config.",
@@ -88,15 +78,6 @@ class OmicsWorkflow(object):
                             omics_parameters_definitions[param_name][
                                 "description"
                             ] = description
-                        # if "default" in properties[param_name]:
-                    #     default = properties[param_name]["default"]
-                    #     omics_parameters_definitions[param_name] = default
-
-        # return {
-        #     "omics_parameters_definition": omics_parameters_definitions,
-        #     "omics_parameters_defaults": omics_parameters_defaults,
-        # }
-        # log.info(omics_parameters_definitions)
         return omics_parameters_definitions
 
     def create_omics_workflow(
