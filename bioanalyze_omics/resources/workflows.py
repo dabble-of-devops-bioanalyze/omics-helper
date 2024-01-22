@@ -1,4 +1,5 @@
 import boto3
+import tempfile
 import time
 import argparse
 import json
@@ -38,73 +39,92 @@ class OmicsWorkflow(object):
         else:
             self.omics_client = client
 
-    def parse_nextflow_schema(self, nextflow_dir: str) -> Dict:
+    def parse_nextflow_schema(self, nextflow_dir: str = os.getcwd()) -> Dict:
         """
         parse the nextflow_schema.json and return parameters in the format expected by omics.create_workflow
         :param nextflow_dir:
         :return:
         """
         omics_parameters_definitions = {}
-        omics_parameters_defaults = {}
+        # omics_parameters_defaults = {}
         additional_parameters = """"""
         additional_parameters = [p.strip() for p in additional_parameters.split(",")]
 
-        for param_name in additional_parameters:
-            if len(param_name):
-                omics_parameters_definitions[param_name] = {
-                    "optional": True,
-                    "description": param_name,
-                }
+        # for param_name in additional_parameters:
+        #     if len(param_name):
+        #         omics_parameters_definitions[param_name] = {
+        #             "optional": True,
+        #             "description": param_name,
+        #         }
         omics_parameters_definitions["omics"] = {
             "optional": True,
             "description": "Include omics config.",
-            "default": True,
+            # "default": True,
         }
 
         nextflow_schema = json.loads(
             open(os.path.join(nextflow_dir, "nextflow_schema.json")).read()
         )
+        ignore_keys = ['institutional_config_options']
         for key in nextflow_schema["definitions"].keys():
             properties = nextflow_schema["definitions"][key]["properties"]
-            for param_name in properties.keys():
-                omics_parameters_definitions[param_name] = {"optional": True}
-                if "description" in properties[param_name]:
-                    description = properties[param_name]["description"]
-                    description = description.replace("(", " ")
-                    description = description.replace(")", " ")
-                    description = description.replace("\n", " ")
-                    if not len(description):
-                        description = param_name
-                    omics_parameters_definitions[param_name][
-                        "description"
-                    ] = description
-                if "default" in properties[param_name]:
-                    default = properties[param_name]["default"]
-                    omics_parameters_defaults[param_name] = default
+            if key not in ignore_keys:
+                for param_name in properties.keys():
+                    if param_name:
+                        hidden = properties[param_name].get('hidden', False)
+                        omics_parameters_definitions[param_name] = {"optional": True}
+                        if "description" in properties[param_name]:
+                            description = properties[param_name]["description"]
+                            description = description.replace("(", " ")
+                            description = description.replace(")", " ")
+                            description = description.replace("\n", " ")
+                            if not len(description):
+                                description = param_name
+                            omics_parameters_definitions[param_name][
+                                "description"
+                            ] = description
+                        else:
+                            description = param_name
+                            omics_parameters_definitions[param_name][
+                                "description"
+                            ] = description
+                        # if "default" in properties[param_name]:
+                    #     default = properties[param_name]["default"]
+                    #     omics_parameters_definitions[param_name] = default
 
-        return {
-            "omics_parameters_definition": omics_parameters_definitions,
-            "omics_parameters_defaults": omics_parameters_defaults,
-        }
+        # return {
+        #     "omics_parameters_definition": omics_parameters_definitions,
+        #     "omics_parameters_defaults": omics_parameters_defaults,
+        # }
+        # log.info(omics_parameters_definitions)
+        return omics_parameters_definitions
 
     def create_omics_workflow(
         self,
-        workflow_root_dir,
+        workflow_root_dir=os.getcwd(),
         parameters={"param_name": {"description": "param_desc"}},
         name=None,
         description=None,
-        main=None,
+        main="main.nf",
     ):
+        if not description:
+            description = name
         buffer = io.BytesIO()
         print("creating zip file:")
+        ignore_dirs = ['.github', '.devcontainer', 'docs']
         with ZipFile(buffer, mode="w", compression=ZIP_DEFLATED) as zf:
             for file in glob.iglob(
                 os.path.join(workflow_root_dir, "**/*"), recursive=True
             ):
                 if os.path.isfile(file):
-                    arcname = file.replace(os.path.join(workflow_root_dir, ""), "")
-                    # print(f".. adding: {file} -> {arcname}")
-                    zf.write(file, arcname=arcname)
+                    i = False
+                    for ignore_dir in ignore_dirs:
+                        if ignore_dir in file:
+                            i = True
+                    if not i:
+                        arcname = file.replace(os.path.join(workflow_root_dir, ""), "")
+                        print(f".. adding: {file} -> {arcname}")
+                        zf.write(file, arcname=arcname)
 
         response = self.omics_client.create_workflow(
             name=name,
@@ -112,6 +132,7 @@ class OmicsWorkflow(object):
             definitionZip=buffer.getvalue(),  # this argument needs bytes
             main=main,
             parameterTemplate=parameters,
+            engine="NEXTFLOW",
         )
 
         workflow_id = response["id"]

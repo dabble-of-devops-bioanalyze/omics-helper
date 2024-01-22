@@ -51,14 +51,14 @@ def create_ecr_repos(
             help="Output manifest file",
             default="container_image_manifest.json",
         ),
-    ],
+    ] = "container_image_manifest.json",
     output_config_file: Annotated[
         Optional[str], typer.Option(help="Output config file", default="omics.config")
-    ],
+    ] = "omics.config",
     nf_workflow: Annotated[
         str,
         typer.Option(help="Nextflow workflow", default=os.getcwd()),
-    ],
+    ] = os.getcwd(),
     aws_region: Annotated[
         Optional[str],
         typer.Option(help="AWS Region", default=AWS_REGION),
