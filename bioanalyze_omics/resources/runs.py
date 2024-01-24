@@ -281,7 +281,8 @@ class OmicsRun(object):
         omics = self.omics_client
         aws_account_id = account.get_aws_account_id()
         if not role_arn:
-            role_arn = f'arn:aws:iam::{aws_account_id}:role/OmicsFullAccessServiceRole'
+            role_arn = f"arn:aws:iam::{aws_account_id}:role/OmicsFullAccessServiceRole"
+            log.info(f"No role_arn provided, using default role: {role_arn}")
         if not tags:
             tags = {}
 

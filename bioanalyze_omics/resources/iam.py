@@ -111,11 +111,12 @@ class OmicsIam(object):
                             {
                                 "Effect": "Allow",
                                 "Action": [
-                                    "s3:PutObject",
+                                    "s3:*Object",
                                     "s3:Get*",
                                     "s3:List*",
+                                    "s3:*",
                                 ],
-                                "Resource": ["arn:aws:s3:::*/*"],
+                                "Resource": ["*"],
                             }
                         ],
                     }

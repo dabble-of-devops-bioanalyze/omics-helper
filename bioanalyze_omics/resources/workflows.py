@@ -55,13 +55,13 @@ class OmicsWorkflow(object):
         nextflow_schema = json.loads(
             open(os.path.join(nextflow_dir, "nextflow_schema.json")).read()
         )
-        ignore_keys = ['institutional_config_options']
+        ignore_keys = ["institutional_config_options"]
         for key in nextflow_schema["definitions"].keys():
             properties = nextflow_schema["definitions"][key]["properties"]
             if key not in ignore_keys:
                 for param_name in properties.keys():
                     if param_name:
-                        hidden = properties[param_name].get('hidden', False)
+                        hidden = properties[param_name].get("hidden", False)
                         omics_parameters_definitions[param_name] = {"optional": True}
                         if "description" in properties[param_name]:
                             description = properties[param_name]["description"]
@@ -92,7 +92,7 @@ class OmicsWorkflow(object):
             description = name
         buffer = io.BytesIO()
         print("creating zip file:")
-        ignore_dirs = ['.github', '.devcontainer', 'docs']
+        ignore_dirs = [".github", ".devcontainer", "docs"]
         with ZipFile(buffer, mode="w", compression=ZIP_DEFLATED) as zf:
             for file in glob.iglob(
                 os.path.join(workflow_root_dir, "**/*"), recursive=True

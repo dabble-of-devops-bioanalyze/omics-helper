@@ -4,7 +4,6 @@ from os import path
 from textwrap import dedent
 import warnings
 
-
 __NF_DIRECTIVES: str = """
     accelerator,afterScript,
     beforeScript,
@@ -216,7 +215,9 @@ class NextflowWorkflow:
             )
 
         process_configs = []
-        _tpl = "withName: '(.+:)?::process.name::' { container = '::process.container.uri::' }"
+        _tpl = (
+            "withName: '::process.name::' { container = '::process.container.uri::' }"
+        )
         for process in self.processes:
             if process.container:
                 container_uri = self._get_ecr_image_name(
@@ -239,7 +240,7 @@ class NextflowWorkflow:
                 ecr_registry = ':::ecr_registry:::'
                 outdir = '/mnt/workflow/pubdir'
             }
-            
+
             manifest {
                 nextflowVersion = '!>=22.04.0'
             }
@@ -252,15 +253,15 @@ class NextflowWorkflow:
                 enabled = true
                 registry = params.ecr_registry
             }
-            
+
             process {
-            withName: '.*' { conda = null }
-            :::process_configs:::
+                withName: '.*' { conda = null }
+                :::process_configs:::
             }
             """
         )
         config = config.replace(":::ecr_registry:::", ecr_registry)
-        config = config.replace(":::process_configs:::", "\n".join(process_configs))
+        config = config.replace(":::process_configs:::", "\n\t".join(process_configs))
 
         return config
 

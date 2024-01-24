@@ -169,10 +169,10 @@ def create_ecrs(
             docker_repo = docker_image_name
             docker_image_name = docker_image_name.replace("quay.io/", "")
             docker_image_name = docker_image_name.replace("docker.io/", "")
-            if len(docker_image_name.split(":")) == 1:
+            docker_image_name = docker_image_name.replace("registry.hub.docker.com", "")
+            tag = "latest"
+            if len(docker_image_name.split(":")) == 2:
                 tag = docker_image_name.split(":")[1]
-            else:
-                tag = "latest"
             docker_image_name = docker_image_name.split(":")[0]
             create_ecr_repo(docker_image_name)
             apply_omics_ecr_policy(docker_image_name)
@@ -192,8 +192,12 @@ def create_ecrs(
 def append_omics_config(nf_workflow: str):
     file_path = os.path.join(nf_workflow, "nextflow.config")
     log.info("Appending omics.config to nextflow.config. Set --omics=false to disable.")
-    omics_content = """// Load omics.config
+    omics_content = """
+
+// Load omics.config
+
 params.omics = true
+
 if (params.omics) {
     process.debug          = true
     workflow.profile       = 'docker'
