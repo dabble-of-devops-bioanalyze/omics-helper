@@ -1,23 +1,44 @@
-name: auto-release
+name: Create Release
 
 on:
-    pull_request:
-        # Only following types are handled by the action, but one can default to all as well
-        types: [ opened, reopened, synchronize ]
-    push:
+    workflow_run:
+        workflows: [ "Run Tests" ]
+        types: [ completed ]
         branches:
             - master
             - main
 
+# trying with PR
 jobs:
-    publish:
+    release:
         runs-on: ubuntu-latest
         steps:
-            # Drafts your next Release notes as Pull Requests are merged into "master"
-            -   uses: release-drafter/release-drafter@v5
+            -   uses: actions/checkout@v2
+
+            -   uses: actions-ecosystem/action-get-latest-tag@v1
+                id: get-latest-tag
+
+            -   uses: actions-ecosystem/action-bump-semver@v1
+                id: bump-semver
                 with:
-                    publish: true
-                    prerelease: false
-                    config-name: auto-release.yml
+                    current_version: ${{ steps.get-latest-tag.outputs.tag }}
+                    level: minor
+
+            -   uses: actions-ecosystem/action-push-tag@v1
+                with:
+                    tag: ${{ steps.bump-semver.outputs.new_version }}
+                    message: "${{ steps.bump-semver.outputs.new_version }}: PR #${{ github.event.pull_request.number }} ${{ github.event.pull_request.title }}"
+
+            -   uses: heinrichreimer/github-changelog-generator-action@v2.1.1
+                id: changelog
+                with:
+                    token: ${{ secrets.GITHUB_TOKEN }}
+
+            -   name: Create a GitHub release
+                uses: actions/create-release@v1
                 env:
-                    GITHUB_TOKEN: ${{ secrets.PUBLIC_REPO_ACCESS_TOKEN }}
+                    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                with:
+                    tag_name: ${{ steps.bump-semver.outputs.new_version }}
+                    release_name: Release ${{ steps.bump-semver.outputs.new_version }}
+                    body: ${{ steps.changelog.outputs.changelog }}
