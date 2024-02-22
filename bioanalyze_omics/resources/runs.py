@@ -63,10 +63,22 @@ class OmicsRun(object):
             self.omics_client = client
 
     def format_run(self, run: Dict, cost: Any) -> Dict:
-        run["resourceDigests"] = json.dumps(cost["run"]["resourceDigests"])
-        run["tags"] = str(json.dumps(cost["run"]["tags"]))
-        run["parameters"] = json.dumps(cost["run"]["parameters"])
-        run["logLocation"] = run["logLocation"]["runLogStream"]
+        if "resourceDigests" in cost['run']:
+            run["resourceDigests"] = json.dumps(cost["run"]["resourceDigests"])
+        else:
+            run["resourceDigests"] = {}
+        if "tags" in run:
+            run["tags"] = str(json.dumps(cost["run"]["tags"]))
+        else:
+            run["tags"] = ""
+        if "parameters" in run:
+            run["parameters"] = json.dumps(cost["run"]["parameters"])
+        else:
+            run["parameters"] = {}
+        if "logLocation" in run and "runLogStream" in run['logLocation']:
+            run["logLocation"] = run["logLocation"]["runLogStream"]
+        else:
+            run["logLocation"] = ""
         del run["tasks"]
         run_columns = run.keys()
         run_values = run.values()
