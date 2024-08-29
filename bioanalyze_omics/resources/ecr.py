@@ -63,7 +63,7 @@ POLICY = """{
 }"""
 
 
-def create_ecr_repo(repo_name: str) -> str:
+def create_ecr_repo(repo_name: str) -> bool:
     """
     Create an ECR repository if it doesn't exist.
 
@@ -91,7 +91,6 @@ def create_ecr_repo(repo_name: str) -> str:
             log.fatal(f"Error creating ECR repository '{repo_name}': {e}")
             return False
 
-    return repo_name
 
 
 # Example usage
