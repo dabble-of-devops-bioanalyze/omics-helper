@@ -58,7 +58,8 @@ def change_case(str: str) -> str:
 class OmicsRun(object):
     def __init__(self, client=None):
         if client is None:
-            self.omics_client = boto3.Session().client("omics")
+            # self.omics_client = boto3.Session().client("omics")
+            self.omics_client = boto3.client("omics")
         else:
             self.omics_client = client
 
@@ -135,15 +136,18 @@ class OmicsRun(object):
 
         tasks_data = []
         for task in tasks:
-            new_task = deepcopy(task)
-            if "stopTime" in new_task:
-                new_task["duration"] = new_task["stopTime"] - new_task["startTime"]
-            else:
-                new_task["duration"] = (
-                    datetime.now(new_task["startTime"].tzinfo) - new_task["startTime"]
-                )
-            new_task["task"] = new_task["name"].split(":").pop()
-            tasks_data.append(new_task)
+            try:
+                new_task = deepcopy(task)
+                if "stopTime" in new_task:
+                    new_task["duration"] = new_task["stopTime"] - new_task["startTime"]
+                else:
+                    new_task["duration"] = (
+                        datetime.now(new_task["startTime"].tzinfo) - new_task["startTime"]
+                    )
+                new_task["task"] = new_task["name"].split(":").pop()
+                tasks_data.append(new_task)
+            except Exception as e:
+                pass
 
         run_data = deepcopy(run)
         run_data["tasks"] = tasks_data
@@ -336,14 +340,14 @@ def calculate_cost(
     profile: str = None,
     aws_region: str = os.environ.get("AWS_DEFAULT_REGION", "us-east-1"),
 ):
-    session = boto3.Session(
-        region_name=aws_region,
-        aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID", None),
-        aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY", None),
-    )
-    omics_runs = OmicsRun(client=session.client("omics"))
+    # session = boto3.Session(
+    #     region_name=aws_region,
+    #     aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID", None),
+    #     aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY", None),
+    # )
+    omics_runs = OmicsRun()
     cost = omics_runs.get_run_cost(
-        run_id, client=session.client("omics"), offering=offering
+        run_id,  offering=offering
     )
     task_costs_df = pd.DataFrame.from_records(cost["cost_detail"]["task_costs"])
     storage_costs_df = pd.DataFrame.from_records([cost["cost_detail"]["storage_cost"]])
