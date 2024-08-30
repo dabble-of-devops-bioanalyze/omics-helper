@@ -92,14 +92,17 @@ def create_ecr_repo(repo_name: str) -> bool:
             return False
 
 
-
 # Example usage
 # repo_name = 'your-ecr-repo-name'
 # create_ecr_repo(repo_name)
 
 
-def tag_and_push_to_ecr(source_image_uri, ecr_image_uri, ecr_image_tag="latest"):
-    # 1. Tag the Docker image with the ECR repository URI
+def tag_and_push_to_ecr(
+    source_image_uri: str, ecr_image_uri: str, ecr_image_tag: str = "latest"
+):
+    """
+    Tag the Docker image with the ECR repository URI
+    """
     docker_client = docker.from_env()
     image_tagged = f"{ecr_image_uri}:{ecr_image_tag}"
 
@@ -179,11 +182,16 @@ def create_ecrs(
             ecr_repo_uri = (
                 f"{account_id}.dkr.ecr.{aws_region}.amazonaws.com/{docker_image_name}"
             )
-            tag_and_push_to_ecr(
-                source_image_uri=docker_repo,
-                ecr_image_uri=ecr_repo_uri,
-                ecr_image_tag=tag,
-            )
+            fh.write(f"docker tag {docker_repo} {ecr_repo_uri}:{tag}\n")
+            fh.write(f"docker push {ecr_repo_uri}:{tag}\n\n")
+            try:
+                tag_and_push_to_ecr(
+                    source_image_uri=docker_repo,
+                    ecr_image_uri=ecr_repo_uri,
+                    ecr_image_tag=tag,
+                )
+            except Exception as e:
+                log.warning(f"Error tagging and pushing to ECR: {e}")
 
     return
 

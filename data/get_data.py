@@ -34,6 +34,6 @@ for fastq_1, fastq_2 in zip(df["fastq_1"].tolist(), df["fastq_2"].tolist()):
     else:
         fastq_2s.append(None)
 
-df['fastq_1'] = fastq_1s
-df['fastq_2'] = fastq_2s
+df["fastq_1"] = fastq_1s
+df["fastq_2"] = fastq_2s
 df.to_csv("samplesheet-omics.csv", index=False)

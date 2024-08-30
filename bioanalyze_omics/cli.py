@@ -18,14 +18,12 @@ AWS_REGION = os.environ.get("AWS_DEFAULT_REGION", "us-east-1")
 
 @app.command()
 def run_cost(
-    run_id: Annotated[str, typer.Option(help="Run ID", default=None)],
+    run_id: Annotated[str, typer.Option(help="Run ID")],
     aws_region: Annotated[
-        Optional[str],
-        typer.Option(help="AWS Region", default=AWS_REGION),
+        str,
+        typer.Option(help="AWS Region"),
     ] = AWS_REGION,
-    aws_profile: Annotated[
-        Optional[str], typer.Option(help="AWS Profile", default="default")
-    ] = "default",
+    aws_profile: Annotated[str, typer.Option(help="AWS Profile")] = "default",
 ):
     """
     Calculate the cost of a run. If the run is still running, it will calculate the current cost. If the run is complete, it will calculate the final cost.
@@ -46,31 +44,28 @@ def run_cost(
 @app.command()
 def create_ecr_repos(
     output_manifest_file: Annotated[
-        Optional[str],
+        str,
         typer.Option(
             help="Output manifest file",
-            default="container_image_manifest.json",
         ),
     ] = "container_image_manifest.json",
     output_config_file: Annotated[
-        Optional[str], typer.Option(help="Output config file", default="omics.config")
+        str, typer.Option(help="Output config file")
     ] = "omics.config",
     nf_workflow: Annotated[
         str,
-        typer.Option(help="Nextflow workflow", default=os.getcwd()),
+        typer.Option(
+            help="Nextflow workflow",
+        ),
     ] = os.getcwd(),
     aws_region: Annotated[
-        Optional[str],
-        typer.Option(help="AWS Region", default=AWS_REGION),
+        str,
+        typer.Option(help="AWS Region"),
     ] = AWS_REGION,
-    aws_profile: Annotated[
-        Optional[str], typer.Option(help="AWS Profile", default="default")
-    ] = "default",
     create_ecr: Annotated[
-        Optional[bool],
+        bool,
         typer.Option(
-            help="Create ECR repos, attach omics policies, and push existing repos.",
-            default=True,
+            "--create-ecr",
         ),
     ] = True,
 ):
@@ -117,11 +112,8 @@ def create_ecr_repos(
 def list_workflows(
     aws_region: Annotated[
         Optional[str],
-        typer.Option(help="AWS Region", default=AWS_REGION),
+        typer.Option(help="AWS Region"),
     ] = AWS_REGION,
-    aws_profile: Annotated[
-        Optional[str], typer.Option(help="AWS Profile", default="default")
-    ] = "default",
 ):
     """List existing omics workflows"""
     omics_workflow = workflows.OmicsWorkflow(aws_region=aws_region)
@@ -130,42 +122,33 @@ def list_workflows(
 
 
 @app.command()
-def list_runs(
-    aws_region: Annotated[
-        Optional[str],
-        typer.Option(help="AWS Region", default=AWS_REGION),
-    ] = AWS_REGION,
-    aws_profile: Annotated[
-        Optional[str], typer.Option(help="AWS Profile", default="default")
-    ] = "default",
-):
+def list_runs():
     """List existing omics runs"""
-    omics_run = runs.OmicsRun(aws_region=aws_region)
+    omics_run = runs.OmicsRun()
     omics_run.list_runs()
     return
 
 
 @app.command()
 def create_workflow(
-    nf_workflow: Annotated[
-        str,
-        typer.Option(help="Nextflow workflow directory", default=os.getcwd()),
-    ],
     name: Annotated[
         str,
-        typer.Option(help="Nextflow workflow name", default=None),
+        typer.Option(help="Nextflow workflow name"),
     ],
     description: Annotated[
         Optional[str],
-        typer.Option(help="Nextflow workflow description", default=None),
+        typer.Option(help="Nextflow workflow description"),
     ] = None,
     aws_region: Annotated[
         Optional[str],
-        typer.Option(help="AWS Region", default=AWS_REGION),
+        typer.Option(
+            help="AWS Region",
+        ),
     ] = AWS_REGION,
-    aws_profile: Annotated[
-        Optional[str], typer.Option(help="AWS Profile", default="default")
-    ] = "default",
+    nf_workflow: Annotated[
+        str,
+        typer.Option(help="Nextflow workflow directory"),
+    ] = os.getcwd(),
 ):
     """Create an omics workflow from a nextflow workflow directory.
 
@@ -184,7 +167,7 @@ def create_workflow(
     return
 
 
-@app.command
+@app.command()
 def setup_iam():
     """Setup IAM policies and roles for omics"""
     omics_iam = iam.OmicsIam()
@@ -193,4 +176,4 @@ def setup_iam():
 
 
 if __name__ == "__main__":
-    sys.exit(app())  # pragma: no cover
+    app()  # pragma: no cover

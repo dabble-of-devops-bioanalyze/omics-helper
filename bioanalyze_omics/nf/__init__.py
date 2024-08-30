@@ -283,7 +283,10 @@ class NextflowProcess:
                 value = props.get(attr)
             setattr(self, attr, value)
 
-        if self.container:
+        if isinstance(self.container, list):
+            self.container = self.container[0]
+            self.container = find_docker_uri(self.container)
+        elif self.container:
             self.container = find_docker_uri(self.container)
 
     def __hash__(self) -> int:

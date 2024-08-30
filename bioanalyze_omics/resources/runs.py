@@ -63,7 +63,7 @@ class OmicsRun(object):
             self.omics_client = client
 
     def format_run(self, run: Dict, cost: Any) -> Dict:
-        if "resourceDigests" in cost['run']:
+        if "resourceDigests" in cost["run"]:
             run["resourceDigests"] = json.dumps(cost["run"]["resourceDigests"])
         else:
             run["resourceDigests"] = {}
@@ -75,7 +75,7 @@ class OmicsRun(object):
             run["parameters"] = json.dumps(cost["run"]["parameters"])
         else:
             run["parameters"] = {}
-        if "logLocation" in run and "runLogStream" in run['logLocation']:
+        if "logLocation" in run and "runLogStream" in run["logLocation"]:
             run["logLocation"] = run["logLocation"]["runLogStream"]
         else:
             run["logLocation"] = ""
